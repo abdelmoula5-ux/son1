@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cloud Survey</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+font-family: Arial;
+background: linear-gradient(135deg,#1e3c72,#2a5298);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+.container{
+background:white;
+color:black;
+padding:40px;
+border-radius:15px;
+width:420px;
+box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+
+h1{
+text-align:center;
+margin-bottom:25px;
+}
+
+.option{
+margin:10px 0;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+background:#2a5298;
+color:white;
+font-size:16px;
+border-radius:8px;
+cursor:pointer;
+margin-top:20px;
+}
+
+button:hover{
+background:#1e3c72;
+}
+
+#result{
+margin-top:30px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Cloud Survey</h1>
+
+<p>Quel cloud préférez-vous ?</p>
+
+<form id="voteForm">
+
+<div class="option">
+<input type="radio" name="cloud" value="Azure"> Microsoft Azure
+</div>
+
+<div class="option">
+<input type="radio" name="cloud" value="AWS"> Amazon AWS
+</div>
+
+<div class="option">
+<input type="radio" name="cloud" value="GCP"> Google Cloud
+</div>
+
+<button type="submit">Vote</button>
+
+</form>
+
+<div id="result">
+<canvas id="chart"></canvas>
+</div>
+
+</div>
+
+<script>
+
+let chart;
+
+async function getResults(){
+
+const response = await fetch("/api/results");
+const data = await response.json();
+
+const ctx = document.getElementById('chart');
+
+if(chart) chart.destroy();
+
+chart = new Chart(ctx,{
+type:'pie',
+data:{
+labels:["Azure","AWS","GCP"],
+datasets:[{
+data:[data.Azure,data.AWS,data.GCP]
+}]
+}
+});
+
+}
+
+document.getElementById("voteForm").addEventListener("submit",async function(e){
+
+e.preventDefault();
+
+const choice=document.querySelector('input[name="cloud"]:checked').value;
+
+await fetch("/api/vote",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({cloud:choice})
+});
+
+getResults();
+
+});
+
+getResults();
+
+</script>
+
+</body>
+</html>
